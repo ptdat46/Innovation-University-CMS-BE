@@ -1,10 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\AdminController;
-use App\Http\Controllers\API\WriterController;
-use App\Http\Controllers\API\UserController;
-use App\Http\Controllers\API\CommonController;
+use App\Http\Controllers\Api\Admin\AdminController;
+use App\Http\Controllers\Api\Writer\WriterController;
+use App\Http\Controllers\Api\User\UserController;
+use App\Http\Controllers\Api\CommonController;
 
 // Admin routes
 Route::prefix('admin')->group(function () {
@@ -35,7 +35,8 @@ Route::middleware(['auth:sanctum', 'role:user'])->group(function () {
 });
 
 Route::get('/', [CommonController::class, 'getPostsForHomepage']);
-Route::get('/news', [CommonController::class, 'getNewsPosts']);
-Route::get('/events', [CommonController::class, 'getEventsPosts']);
-Route::get('/clubs', [CommonController::class, 'getClubsPosts']);
-Route::get('/student-life', [CommonController::class, 'getStudentLifePosts']);
+Route::get('/news', [CommonController::class, 'getAllNewsPosts']);
+Route::get('/events', [CommonController::class, 'getAllEventsPosts']);
+Route::get('/clubs', [CommonController::class, 'getAllClubsPosts']);
+Route::get('/student-life', [CommonController::class, 'getAllStudentLifePosts']);
+Route::get('/posts/{id}', [CommonController::class, 'getPostDetails']);

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Helpers\Common;
@@ -12,10 +12,10 @@ class CommonController extends Controller
     public function getPostsForHomepage(Request $request)
     {
         try {
-            $newsPosts = Post::getNewestPostsByNews(4);
-            $eventsPosts = Post::getNewestPostsByEvents(4);
-            $clubsPosts = Post::getNewestPostsByClubs(4);
-            $studentLifePosts = Post:: getNewestPostsByStudentLife(4);
+            $newsPosts = Post::getNewestPostsByNews(4)->get();
+            $eventsPosts = Post::getNewestPostsByEvents(4)->get();
+            $clubsPosts = Post::getNewestPostsByClubs(4)->get();
+            $studentLifePosts = Post:: getNewestPostsByStudentLife(4)->get();
 
             return Common::successResponse('Danh sách bài viết cho trang chủ', [
                 'posts' => [
@@ -33,7 +33,9 @@ class CommonController extends Controller
     public function getAllNewsPosts(Request $request)
     {
         try {
-            $newsPosts = Post::getNewestPostsByNews();
+            $newsPosts = Post::getNewestPostsByNews()
+                ->select('id', 'title', 'excerpt', 'featured_image', 'post_day', 'category', 'views', 'likes', 'writer_id')
+                ->paginate(10);
 
             return Common::successResponse('Danh sách bài viết News', [
                 'posts' => $newsPosts,
@@ -46,7 +48,9 @@ class CommonController extends Controller
     public function getAllEventsPosts(Request $request)
     {
         try {
-            $eventsPosts = Post::getNewestPostsByEvents();
+            $eventsPosts = Post::getNewestPostsByEvents()
+                ->select('id', 'title', 'excerpt', 'featured_image', 'post_day', 'category', 'views', 'likes', 'writer_id')
+                ->paginate(10);
 
             return Common::successResponse('Danh sách bài viết Events', [
                 'posts' => $eventsPosts,
@@ -59,7 +63,9 @@ class CommonController extends Controller
     public function getAllClubsPosts(Request $request)
     {
         try {
-            $clubsPosts = Post::getNewestPostsByClubs();
+            $clubsPosts = Post::getNewestPostsByClubs()
+                ->select('id', 'title', 'excerpt', 'featured_image', 'post_day', 'category', 'views', 'likes', 'writer_id')
+                ->paginate(10);
 
             return Common::successResponse('Danh sách bài viết Clubs', [
                 'posts' => $clubsPosts,
@@ -72,7 +78,9 @@ class CommonController extends Controller
     public function getAllStudentLifePosts(Request $request) 
     {
         try {
-            $studentLifePosts = Post::getNewestPostsByStudentLife();
+            $studentLifePosts = Post::getNewestPostsByStudentLife()
+                ->select('id', 'title', 'excerpt', 'featured_image', 'post_day', 'category', 'views', 'likes', 'writer_id')
+                ->paginate(10);
 
             return Common::successResponse('Danh sách bài viết Student Life', [
                 'posts' => $studentLifePosts,
@@ -80,6 +88,27 @@ class CommonController extends Controller
         } catch (\Exception $e) {
             return Common::errorResponse('Lỗi khi lấy danh sách bài viết Student Life', ['error' => $e->getMessage()], 500);
         }
+    }
 
+    public function getPostDetails(Request $request, $postId)
+    {
+        try {
+            if (!is_numeric($postId) || (int)$postId <= 0) {
+                return Common::errorResponse('ID bài viết không hợp lệ. ID phải là số nguyên', [], 400);
+            }
+            
+            $postId = (int)$postId;
+            $post = Post::getPostById($postId)->published()->first();
+
+            if (!$post) {
+                return Common::errorResponse('Bài viết không tồn tại', [], 404);
+            }
+
+            return Common::successResponse('Chi tiết bài viết', [
+                'post' => $post,
+            ]);
+        } catch (\Exception $e) {
+            return Common::errorResponse('Lỗi khi lấy chi tiết bài viết', ['error' => $e->getMessage()], 500);
+        }
     }
 }

@@ -125,7 +125,7 @@ class Post extends Model
             $result->limit((int) $limit);
         }
         
-        return $result->get();
+        return $result;
     }
     public function scopeGetNewestPostsByEvents($query, $limit = null)
     {
@@ -137,7 +137,7 @@ class Post extends Model
             $result->limit((int) $limit);
         }
         
-        return $result->get();
+        return $result;
     }
     public function scopeGetNewestPostsByClubs($query, $limit = null)
     {
@@ -149,7 +149,7 @@ class Post extends Model
             $result->limit((int) $limit);
         }
         
-        return $result->get();
+        return $result;
     }
     public function scopeGetNewestPostsByStudentLife($query, $limit = null)
     {
@@ -161,6 +161,6 @@ class Post extends Model
             $result->limit((int) $limit);
         }
         
-        return $result->get();
+        return $result;
     }
 }
