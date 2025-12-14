@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Writer;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\LoginRequest;
 use App\Http\Requests\CreatePostRequest;
 use App\Models\User;
 use App\Helpers\Common;
@@ -69,11 +69,18 @@ class WriterController extends Controller
     }
 
     public function getListPosts(Request $request) {
-        $writer = $request->user();
+        try {
+            $writer = $request->user();
 
-        $posts = Post::getPostsByWriter($writer->id);
+            $posts = Post::where('writer_id', $writer->id)
+                ->select('id', 'title', 'status', 'views', 'likes', 'created_at', 'category')
+                ->orderBy('created_at', 'desc')
+                ->get();
 
-        return Common::successResponse('Danh sách bài viết của tác giả', ['posts' => $posts]);
+            return Common::successResponse('Danh sách bài viết của tác giả', ['posts' => $posts]);
+        } catch (\Exception $e) {
+            return Common::errorResponse('Lỗi khi lấy danh sách bài viết', ['error' => $e->getMessage()], 500);
+        }
     }
 
     public function getPostDetail(Request $request, $postId) {
@@ -86,5 +93,89 @@ class WriterController extends Controller
         }
 
         return Common::successResponse('Chi tiết bài viết', ['post' => $post]);
+    }
+
+    public function deletePost(Request $request, $postId)
+    {
+        try {
+            $writer = $request->user();
+            $post = Post::find($postId);
+
+            if (!$post) {
+                return Common::errorResponse('Bài viết không tồn tại', ['post' => 'Not Found'], 404);
+            }
+
+            if ($post->writer_id !== $writer->id) {
+                return Common::errorResponse('Bạn không có quyền xóa bài viết này', ['post' => 'Forbidden'], 403);
+            }
+
+            $post->delete();
+
+            return Common::successResponse('Xóa bài viết thành công', []);
+        } catch (\Exception $e) {
+            return Common::errorResponse('Lỗi khi xóa bài viết', ['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function uploadFeaturedImage(Request $request)
+    {
+        try {
+            $request->validate([
+                'image' => 'required|image|mimes:jpeg,jpg,png,webp|max:2048',
+            ], [
+                'image.required' => 'Vui lòng chọn ảnh',
+                'image.image' => 'File phải là ảnh',
+                'image.mimes' => 'Ảnh phải có định dạng: jpeg, jpg, png, webp',
+                'image.max' => 'Kích thước ảnh không được vượt quá 2MB',
+            ]);
+
+            $image = $request->file('image');
+            $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+            $path = $image->storeAs('posts/featured', $filename, 'public');
+
+            return Common::successResponse('Upload ảnh thành công', [
+                'url' => asset('storage/' . $path),
+                'path' => $path,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return Common::errorResponse('Lỗi validate', $e->errors(), 422);
+        } catch (\Exception $e) {
+            return Common::errorResponse('Lỗi khi upload ảnh', ['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function uploadEditorImage(Request $request)
+    {
+        try {
+            $request->validate([
+                'image' => 'required|image|mimes:jpeg,jpg,png,webp,gif|max:5120',
+            ], [
+                'image.required' => 'Vui lòng chọn ảnh',
+                'image.image' => 'File phải là ảnh',
+                'image.mimes' => 'Ảnh phải có định dạng: jpeg, jpg, png, webp, gif',
+                'image.max' => 'Kích thước ảnh không được vượt quá 5MB',
+            ]);
+
+            $image = $request->file('image');
+            $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+            $path = $image->storeAs('posts/content', $filename, 'public');
+
+            return response()->json([
+                'success' => 1,
+                'file' => [
+                    'url' => asset('storage/' . $path),
+                ]
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => 0,
+                'error' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => 0,
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -21,12 +21,12 @@ class CreatePostRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:255',
-            'content' => 'required|json',
+            'content' => 'required|array',
             'excerpt' => 'nullable|string|max:255',
             'status' => 'required|in:pending,posted',
             'post_day' => 'nullable|date_format:Y-m-d H:i:s',
             'writer_id' => 'required|exists:users,id',
-            'featured_image' => 'nullable|string|max:255',
+            'featured_image' => 'nullable|string|max:500',
             'category' => 'nullable|string|max:100',
         ];
     }
@@ -40,7 +40,7 @@ class CreatePostRequest extends FormRequest
             'title.required' => 'Tiêu đề bài viết là bắt buộc.',
             'title.max' => 'Tiêu đề không được vượt quá 255 ký tự.',
             'content.required' => 'Nội dung bài viết là bắt buộc.',
-            'content.json' => 'Nội dung phải ở định dạng JSON hợp lệ.',
+            'content.array' => 'Nội dung phải ở định dạng JSON hợp lệ.',
             'excerpt.max' => 'Tóm tắt không được vượt quá 500 ký tự.',
             'status.required' => 'Trạng thái bài viết là bắt buộc.',
             'status.in' => 'Trạng thái phải là: pending, posted',

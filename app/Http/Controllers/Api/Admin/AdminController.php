@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\Admin\ListPostsRequest;
 use App\Models\User;
 use App\Models\Post;
 use App\Helpers\Common;
@@ -89,6 +90,94 @@ class AdminController extends Controller
             return Common::successResponse('Duyệt bài viết thành công', ['post' => $post]);
         } catch (\Exception $e) {
             return Common::errorResponse('Lỗi khi duyệt bài viết', ['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getAllPosts(ListPostsRequest $request)
+    {
+        try {
+            $query = Post::with('writer:id,name');
+
+            // Filter by status
+            if ($request->status !== 'all') {
+                $query->where('status', $request->status);
+            }
+
+            // Filter by category
+            if ($request->category !== 'all') {
+                $query->where('category', $request->category);
+            }
+
+            // Filter by writer
+            if ($request->writer_id !== 'all' && $request->writer_id) {
+                $query->where('writer_id', $request->writer_id);
+            }
+
+            // Filter by date range
+            if ($request->date_from) {
+                $query->whereDate('created_at', '>=', $request->date_from);
+            }
+            if ($request->date_to) {
+                $query->whereDate('created_at', '<=', $request->date_to);
+            }
+
+            // Get total stats before pagination
+            $statsQuery = clone $query;
+            $totalViews = $statsQuery->sum('views');
+            $totalLikes = $statsQuery->sum('likes');
+            $totalPosts = $statsQuery->count();
+
+            // Paginate
+            $perPage = $request->get('per_page', 10);
+            $posts = $query->orderBy('created_at', 'desc')->paginate($perPage);
+
+            return Common::successResponse('Danh sách bài viết', [
+                'posts' => $posts->items(),
+                'pagination' => [
+                    'current_page' => $posts->currentPage(),
+                    'last_page' => $posts->lastPage(),
+                    'per_page' => $posts->perPage(),
+                    'total' => $posts->total(),
+                ],
+                'stats' => [
+                    'total_views' => (int) $totalViews,
+                    'total_likes' => (int) $totalLikes,
+                    'total_posts' => (int) $totalPosts,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return Common::errorResponse('Lỗi khi lấy danh sách bài viết', ['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function getWritersList()
+    {
+        try {
+            $writers = User::where('role', 'writer')
+                ->select('id', 'name', 'email')
+                ->orderBy('name')
+                ->get();
+
+            return Common::successResponse('Danh sách writers', ['writers' => $writers]);
+        } catch (\Exception $e) {
+            return Common::errorResponse('Lỗi khi lấy danh sách writers', ['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function deletePost($postId)
+    {
+        try {
+            $post = Post::find($postId);
+
+            if (!$post) {
+                return Common::errorResponse('Bài viết không tồn tại', ['post' => 'Not Found'], 404);
+            }
+
+            $post->delete();
+
+            return Common::successResponse('Xóa bài viết thành công', []);
+        } catch (\Exception $e) {
+            return Common::errorResponse('Lỗi khi xóa bài viết', ['error' => $e->getMessage()], 500);
         }
     }
 }

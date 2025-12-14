@@ -106,7 +106,7 @@ class Post extends Model
 
     public function scopeGetPostById($query, $postId)
     {
-        return $query->where('id', $postId)->first();
+        return $query->where('id', $postId);
     }
 
     public function scopeGetPendingPosts($query)
