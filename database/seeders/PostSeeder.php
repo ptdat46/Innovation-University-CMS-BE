@@ -154,7 +154,7 @@ class PostSeeder extends Seeder
                 'writer_id' => $writers->random()->id,
                 'views' => $postData['status'] === 'posted' ? rand(50, 5000) : 0,
                 'likes' => $postData['status'] === 'posted' ? rand(5, 500) : 0,
-                'featured_image' => $postData['featured_image'],
+                'featured_image' => "https://img.freepik.com/premium-photo/stack-textbooks-notebooks-with-pen_1061909-3228.jpg",
                 'category' => $postData['category'],
                 'created_at' => now()->subDays(rand(0, 60)),
                 'updated_at' => now()->subDays(rand(0, 30)),
