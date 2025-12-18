@@ -178,4 +178,31 @@ class WriterController extends Controller
             ], 500);
         }
     }
+
+    public function uploadPdf(Request $request)
+    {
+        try {
+            $request->validate([
+                'file' => 'required|mimes:pdf|max:10240', // Max 10MB
+            ], [
+                'file.required' => 'Vui lòng chọn file PDF',
+                'file.mimes' => 'File phải có định dạng PDF',
+                'file.max' => 'Kích thước file không được vượt quá 10MB',
+            ]);
+
+            $file = $request->file('file');
+            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('posts/documents', $filename, 'public');
+
+            return Common::successResponse('Upload file PDF thành công', [
+                'url' => asset('storage/' . $path),
+                'path' => $path,
+                'original_name' => $file->getClientOriginalName(),
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return Common::errorResponse('Lỗi validate', $e->errors(), 422);
+        } catch (\Exception $e) {
+            return Common::errorResponse('Lỗi khi upload file', ['error' => $e->getMessage()], 500);
+        }
+    }
 }

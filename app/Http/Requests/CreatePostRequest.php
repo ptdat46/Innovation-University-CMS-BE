@@ -28,6 +28,7 @@ class CreatePostRequest extends FormRequest
             'writer_id' => 'required|exists:users,id',
             'featured_image' => 'nullable|string|max:500',
             'category' => 'nullable|string|max:100',
+            'pdf_file' => 'nullable|string|max:500',
         ];
     }
 

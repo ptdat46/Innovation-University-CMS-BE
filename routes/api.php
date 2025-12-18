@@ -32,6 +32,7 @@ Route::prefix('writer')->group(function () {
         Route::delete('/posts/{id}', [WriterController::class, 'deletePost']);
         Route::post('/upload/featured-image', [WriterController::class, 'uploadFeaturedImage']);
         Route::post('/upload/editor-image', [WriterController::class, 'uploadEditorImage']);
+        Route::post('/uploadPdf', [WriterController::class, 'uploadPdf']);
     });
 });
 

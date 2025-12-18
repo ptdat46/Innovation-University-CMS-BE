@@ -26,6 +26,7 @@ class Post extends Model
         'likes',
         'featured_image',
         'category',
+        'pdf_file',
     ];
 
     /**
